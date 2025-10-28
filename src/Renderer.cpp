@@ -84,23 +84,67 @@ void Renderer::updateWater(int x, int y)
 	}
 }
 
+// void Renderer::update()
+// {
+// 	for (int y = GRID_HEIGHT - 1; y > 0; --y)
+// 	{
+// 		for (int x = 0; x < GRID_WIDTH; ++x)
+// 		{
+// 			int mat_id = get_p(x, y).getId();
+// 			switch (mat_id)
+// 			{
+// 				case MAT_ID_EMPTY:
+// 					break;
+// 				case MAT_ID_SAND:
+// 					updateSand(x, y);
+// 					break;
+// 				case MAT_ID_WATER:
+// 					updateWater(x, y);
+// 					break;
+// 			}
+// 		}
+// 	}
+// }
+
 void Renderer::update()
 {
+	frame_count++;
 	for (int y = GRID_HEIGHT - 1; y > 0; --y)
 	{
-		for (int x = 0; x < GRID_WIDTH; ++x)
+		if (frame_count % 2 == 0)
 		{
-			int mat_id = get_p(x, y).getId();
-			switch (mat_id)
+			for (int x = 0; x < GRID_WIDTH; ++x)
 			{
-				case MAT_ID_EMPTY:
-					break;
-				case MAT_ID_SAND:
-					updateSand(x, y);
-					break;
-				case MAT_ID_WATER:
-					updateWater(x, y);
-					break;
+				int mat_id = get_p(x, y).getId();
+				switch (mat_id)
+				{
+					case MAT_ID_EMPTY:
+						break;
+					case MAT_ID_SAND:
+						updateSand(x, y);
+						break;
+					case MAT_ID_WATER:
+						updateWater(x, y);
+						break;
+				}
+			}
+		}
+		else
+		{
+			for (int x = GRID_WIDTH - 1; x >= 0; --x)
+			{
+				int mat_id = get_p(x, y).getId();
+				switch (mat_id)
+				{
+					case MAT_ID_EMPTY:
+						break;
+					case MAT_ID_SAND:
+						updateSand(x, y);
+						break;
+					case MAT_ID_WATER:
+						updateWater(x, y);
+						break;
+				}
 			}
 		}
 	}

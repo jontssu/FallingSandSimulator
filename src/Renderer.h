@@ -25,4 +25,5 @@ class Renderer
 		void render(sf::RenderTarget& target);
 	private:
 		std::vector<std::vector<Particle>>	particles;
+		int									frame_count = 0;
 };
