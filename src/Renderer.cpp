@@ -14,100 +14,105 @@ Particle &Renderer::get_p(int x, int y)
 
 void Renderer::updateSand(int x, int y)
 {
-	Particle &sand = get_p(x, y);
+	Particle& sand = get_p(x, y);
+	if (sand.HasBeenUpdated())
+		return;
 	if (y + 1 < WindowHeight)
 	{
 		Particle& below = get_p(x, y + 1);
-
-		if (below.getId() == MAT_ID_EMPTY)
+		if (below.getId() == MAT_ID_EMPTY
+			|| below.getId() == MAT_ID_WATER)
+		{
 			std::swap(sand, below);
-		else if (below.getId() == MAT_ID_WATER)
-			std::swap(sand, below);
+			sand.setHasBeenUpdated(true);
+			return;
+		}
 
 		Particle& belowLeft = get_p(x - 1, y + 1);
-		Particle& belowRight = get_p(x + 1, y + 1);
-
-		if ((belowLeft.getId() == MAT_ID_EMPTY && belowRight.getId() == MAT_ID_EMPTY)
-			|| (belowLeft.getId() == MAT_ID_WATER && belowRight.getId() == MAT_ID_WATER))
-		{
-			if (rand() % 2 == 0)
-				std::swap(sand, belowLeft);
-			else
-				std::swap(sand, belowRight);
-		}
-		else if (belowLeft.getId() == MAT_ID_EMPTY
+		if (belowLeft.getId() == MAT_ID_EMPTY
 			|| belowLeft.getId() == MAT_ID_WATER)
+		{
 			std::swap(sand, belowLeft);
-		else if (belowRight.getId() == MAT_ID_EMPTY
+			sand.setHasBeenUpdated(true);
+			return;
+		}
+
+		Particle& belowRight = get_p(x + 1, y + 1);
+		if (belowRight.getId() == MAT_ID_EMPTY
 			|| belowRight.getId() == MAT_ID_WATER)
+		{
 			std::swap(sand, belowRight);
+			sand.setHasBeenUpdated(true);
+			return;
+		}
 	}
 }
 
 void Renderer::updateWater(int x, int y)
 {
 	Particle& water = get_p(x, y);
+	if (water.HasBeenUpdated())
+		return;
+	water.setHasBeenUpdated(true);  // Mark as updated first
+	
 	if (y + 1 < WindowHeight)
 	{
 		Particle& below = get_p(x, y + 1);
-
 		if (below.getId() == MAT_ID_EMPTY)
+		{
 			std::swap(water, below);
-
-		Particle& belowLeft = get_p(x - 1, y + 1);
-		Particle& belowRight = get_p(x + 1, y + 1);
-		if (belowLeft.getId() == MAT_ID_EMPTY && belowRight.getId() == MAT_ID_EMPTY)
+			return;
+		}
+		if (x > 0)
 		{
-			if (rand() % 2 == 0)
+			Particle& belowLeft = get_p(x - 1, y + 1);
+			if (belowLeft.getId() == MAT_ID_EMPTY)
+			{
 				std::swap(water, belowLeft);
-			else
-				std::swap(water, belowRight);
+				return;
+			}
 		}
-		else if (belowLeft.getId() == MAT_ID_EMPTY)
-			std::swap(water, belowLeft);
-		else if (belowRight.getId() == MAT_ID_EMPTY)
-			std::swap(water, belowRight);
-
-		Particle& left = get_p(x - 1, y);
-		Particle& right = get_p(x + 1, y);
-		if (left.getId() == MAT_ID_EMPTY && right.getId() == MAT_ID_EMPTY)
+		if (x + 1 < WindowWidth)
 		{
-			if (rand() % 2 == 0)
-				std::swap(water, left);
-			else
-				std::swap(water, right);
+			Particle& belowRight = get_p(x + 1, y + 1);
+			if (belowRight.getId() == MAT_ID_EMPTY)
+			{
+				std::swap(water, belowRight);
+				return;
+			}
 		}
-		else if (left.getId() == MAT_ID_EMPTY)
+	}
+	if (x > 0)
+	{
+		Particle& left = get_p(x - 1, y);
+		if (left.getId() == MAT_ID_EMPTY)
+		{
 			std::swap(water, left);
-		else if (right.getId() == MAT_ID_EMPTY)
+			return;
+		}
+	}
+	if (x + 1 < WindowWidth)
+	{
+		Particle& right = get_p(x + 1, y);
+		if (right.getId() == MAT_ID_EMPTY)
+		{
 			std::swap(water, right);
+			return;
+		}
 	}
 }
 
-// void Renderer::update()
-// {
-// 	for (int y = GRID_HEIGHT - 1; y > 0; --y)
-// 	{
-// 		for (int x = 0; x < GRID_WIDTH; ++x)
-// 		{
-// 			int mat_id = get_p(x, y).getId();
-// 			switch (mat_id)
-// 			{
-// 				case MAT_ID_EMPTY:
-// 					break;
-// 				case MAT_ID_SAND:
-// 					updateSand(x, y);
-// 					break;
-// 				case MAT_ID_WATER:
-// 					updateWater(x, y);
-// 					break;
-// 			}
-// 		}
-// 	}
-// }
-
 void Renderer::update()
 {
+	for (int y = 0; y < GRID_HEIGHT; ++y)
+	{
+		for (int x = 0; x < GRID_WIDTH; ++x)
+		{
+			Particle& p = get_p(x, y);
+			p.setHasBeenUpdated(false);
+		}
+	}
+
 	frame_count++;
 	for (int y = GRID_HEIGHT - 1; y > 0; --y)
 	{

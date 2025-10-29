@@ -9,7 +9,10 @@ class Particle
 		Particle(int id, float lifetime, sf::Vector2f velocity, sf::Color color);
 	    ~Particle() {}
 
+		void setHasBeenUpdated(bool updated) { has_been_updated = updated; }
+
 		inline const int getId() const { return id; }
+		inline const bool HasBeenUpdated() const { return has_been_updated; }
 
 		void update();
 
