@@ -26,4 +26,5 @@ class Renderer
 	private:
 		std::vector<std::vector<Particle>>	particles;
 		int									frame_count = 0;
+		sf::Vector2f						gravity = {0.f, 1.f};
 };

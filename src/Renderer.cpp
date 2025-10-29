@@ -48,13 +48,15 @@ void Renderer::updateSand(int x, int y)
 	}
 }
 
+
 void Renderer::updateWater(int x, int y)
+
 {
 	Particle& water = get_p(x, y);
 	if (water.HasBeenUpdated())
 		return;
-	water.setHasBeenUpdated(true);  // Mark as updated first
-	
+	water.setHasBeenUpdated(true);
+
 	if (y + 1 < WindowHeight)
 	{
 		Particle& below = get_p(x, y + 1);
@@ -63,44 +65,81 @@ void Renderer::updateWater(int x, int y)
 			std::swap(water, below);
 			return;
 		}
-		if (x > 0)
+		// Try diagonal moves with random direction
+		if (rand() % 2 == 0)
 		{
-			Particle& belowLeft = get_p(x - 1, y + 1);
-			if (belowLeft.getId() == MAT_ID_EMPTY)
+			// Try left first
+			if (x > 0)
 			{
-				std::swap(water, belowLeft);
-				return;
+				Particle& belowLeft = get_p(x - 1, y + 1);
+				if (belowLeft.getId() == MAT_ID_EMPTY)
+				{
+					std::swap(water, belowLeft);
+					return;
+				}
+			}
+			// Then try right
+			if (x + 1 < WindowWidth)
+			{
+				Particle& belowRight = get_p(x + 1, y + 1);
+				if (belowRight.getId() == MAT_ID_EMPTY)
+				{
+					std::swap(water, belowRight);
+					return;
+				}
 			}
 		}
-		if (x + 1 < WindowWidth)
+		else
 		{
-			Particle& belowRight = get_p(x + 1, y + 1);
-			if (belowRight.getId() == MAT_ID_EMPTY)
+			if (x + 1 < WindowWidth)
 			{
-				std::swap(water, belowRight);
-				return;
+				Particle& belowRight = get_p(x + 1, y + 1);
+				if (belowRight.getId() == MAT_ID_EMPTY)
+				{
+					std::swap(water, belowRight);
+					return;
+				}
+			}
+			if (x > 0)
+			{
+				Particle& belowLeft = get_p(x - 1, y + 1);
+				if (belowLeft.getId() == MAT_ID_EMPTY)
+				{
+					std::swap(water, belowLeft);
+					return;
+				}
 			}
 		}
 	}
-	if (x > 0)
+	if (x - 20 > 0 && x + 21 < WindowWidth)
 	{
-		Particle& left = get_p(x - 1, y);
-		if (left.getId() == MAT_ID_EMPTY)
+		if (rand() % 2 == 0)
 		{
-			std::swap(water, left);
-			return;
+			for (int i = 0; i < 20; i++)
+			{
+				Particle& left = get_p(x - i, y);
+				if (left.getId() == MAT_ID_EMPTY)
+				{
+					std::swap(water, left);
+					return;
+				}
+			}
 		}
-	}
-	if (x + 1 < WindowWidth)
-	{
-		Particle& right = get_p(x + 1, y);
-		if (right.getId() == MAT_ID_EMPTY)
+		else
 		{
-			std::swap(water, right);
-			return;
+			for (int i = 0; i < 20; i++)
+			{
+				Particle& right = get_p(x + i, y);
+				if (right.getId() == MAT_ID_EMPTY)
+				{
+					std::swap(water, right);
+					return;
+				}
+			}
 		}
 	}
 }
+
 
 void Renderer::update()
 {
