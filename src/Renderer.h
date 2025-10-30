@@ -3,12 +3,6 @@
 #include "stdafx.h"
 #include "Particle.h"
 
-enum MaterialID
-{
-	MAT_ID_EMPTY,
-	MAT_ID_SAND,
-	MAT_ID_WATER
-};
 
 class Renderer
 {
@@ -20,10 +14,16 @@ class Renderer
 
 		void updateSand(int x, int y);
 		void updateWater(int x, int y);
+		void updateWood(float dt, int x, int y);
+		void updateStone(int x, int y);
+		void updateOil(int x, int y);
+		void updateFire(float dt, int x, int y);
+		void updateSmoke(float dt, int x, int y);
 
-		void update();
-		void render(sf::RenderTarget& target);
-	private:
+	    void update(float deltaTime);
+	    void render(sf::RenderTarget &target);
+
+	  private:
 		std::vector<std::vector<Particle>>	particles;
 		int									frame_count = 0;
 		sf::Vector2f						gravity = {0.f, 1.f};

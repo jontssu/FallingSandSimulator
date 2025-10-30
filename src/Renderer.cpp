@@ -103,13 +103,7 @@ void Renderer::updateWater(int x, int y)
 			std::swap(water, get_p(x, y + fallDistance));
 			return;
 		}
-		// Particle& below = get_p(x, y + 1);
-		// if (below.getId() == MAT_ID_EMPTY)
-		// {
-		// 	std::swap(water, below);
-		// 	return;
-		// }
-		// Try diagonal moves with random direction
+
 		if (rand() % 2 == 0)
 		{
 			// Try left first
@@ -155,12 +149,14 @@ void Renderer::updateWater(int x, int y)
 			}
 		}
 	}
+	
+	// Only spread horizontally if we couldn't move down
 	int dispersityRate = water.getDispersityRate();
 	if (x - dispersityRate > 0 && x + dispersityRate + 1 < WindowWidth)
 	{
 		if (rand() % 2 == 0)
 		{
-			for (int i = 0; i < dispersityRate; ++i)
+			for (int i = 1; i <= dispersityRate; ++i)
 			{
 				Particle& left = get_p(x - i, y);
 				if (left.getId() == MAT_ID_EMPTY)
@@ -174,7 +170,7 @@ void Renderer::updateWater(int x, int y)
 		}
 		else
 		{
-			for (int i = 0; i < dispersityRate; ++i)
+			for (int i = 1; i <= dispersityRate; ++i)
 			{
 				Particle& right = get_p(x + i, y);
 				if (right.getId() == MAT_ID_EMPTY)
@@ -189,8 +185,206 @@ void Renderer::updateWater(int x, int y)
 	}
 }
 
+void Renderer::updateWood(float dt, int x, int y)
+{
+	Particle& wood = get_p(x, y);
+	if (wood.HasBeenUpdated())
+		return;
+	wood.setHasBeenUpdated(true);
 
-void Renderer::update()
+	if (wood.getIsOnFire())
+	{
+		if (y - 1 >= 0)
+		{
+			Particle& above = get_p(x, y - 1);
+			if (above.getId() == MAT_ID_EMPTY && rand() % 5 == 0)
+				above.setId(MAT_ID_SMOKE);
+		}
+		if (wood.burn(dt))
+		{
+			wood.setId(MAT_ID_FIRE);
+			wood.setLifetime(MAT_FIRE_LIFETIME);
+		}
+		if (y + 1 < WindowHeight && rand() % 4 == 0)
+		{
+			Particle& below = get_p(x, y + 1);
+			if (below.getId() == MAT_ID_WOOD)
+			{
+				below.setId(MAT_ID_WOODFIRE);
+				below.setIsOnFire(true);
+			}
+		}
+		if (x - 1 >= 0 && rand() % 4 == 0)
+		{
+			Particle& left = get_p(x - 1, y);
+			if (left.getId() == MAT_ID_WOOD)
+			{
+				left.setId(MAT_ID_WOODFIRE);
+				left.setIsOnFire(true);
+			}
+		}
+		if (x + 1 < WindowWidth && rand() % 4 == 0)
+		{
+			Particle& right = get_p(x + 1, y);
+			if (right.getId() == MAT_ID_WOOD)
+			{
+				right.setId(MAT_ID_WOODFIRE);
+				right.setIsOnFire(true);
+			}
+		}
+		if (y - 1 >= 0 && rand() % 4 == 0)
+		{
+			Particle& above = get_p(x, y - 1);
+			if (above.getId() == MAT_ID_WOOD)
+			{
+				above.setId(MAT_ID_WOODFIRE);
+				above.setIsOnFire(true);
+			}
+		}
+	}
+}
+
+void Renderer::updateStone(int x, int y) 
+{
+}
+
+void Renderer::updateOil(int x, int y)
+{
+}
+
+void Renderer::updateFire(float dt, int x, int y)
+{
+	Particle& fire = get_p(x, y);
+	if (fire.HasBeenUpdated())
+		return;
+	fire.setHasBeenUpdated(true);
+	int hasSpread = false;
+
+	if (fire.burn(dt))
+	{
+		fire.setId(MAT_ID_EMPTY);
+		return;
+	}
+
+	Particle& below = get_p(x, y + 1);
+	if (y + 1 < WindowHeight)
+	{
+		int id = below.getId();
+		if (id == MAT_ID_WOOD || id == MAT_ID_OIL)
+		{
+			if (id == MAT_ID_WOOD)
+				below.setId(MAT_ID_WOODFIRE);
+			below.setIsOnFire(true);
+			hasSpread = true;
+		}
+	}
+	if (x - 1 >= 0)
+	{
+		Particle& left = get_p(x - 1, y);
+		int id = left.getId();
+		if (id == MAT_ID_WOOD || id == MAT_ID_OIL)
+		{
+			if (id == MAT_ID_WOOD)
+				left.setId(MAT_ID_WOODFIRE);
+			left.setIsOnFire(true);
+			hasSpread = true;
+		}
+	}
+	if (x + 1 < WindowWidth)
+	{
+		Particle& right = get_p(x + 1, y);
+		int id = right.getId();
+		if (id == MAT_ID_WOOD || id == MAT_ID_OIL)
+		{
+			if (id == MAT_ID_WOOD)
+				right.setId(MAT_ID_WOODFIRE);
+			right.setIsOnFire(true);
+			hasSpread = true;
+		}
+	}
+	if (y - 1 >= 0)
+	{
+		Particle& above = get_p(x, y - 1);
+		int id = above.getId();
+		if (id == MAT_ID_WOOD || id == MAT_ID_OIL)
+		{
+			if (id == MAT_ID_WOOD)
+				above.setId(MAT_ID_WOODFIRE);
+			above.setIsOnFire(true);
+			hasSpread = true;
+		}
+	}
+	if (hasSpread)
+	{
+		fire.setId(MAT_ID_EMPTY);
+		return;
+	}
+	if (below.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(fire, below);
+		return;	
+	}
+	Particle& belowLeft = get_p(x - 1, y + 1);
+	if (belowLeft.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(fire, belowLeft);
+		return;
+	}
+	Particle& belowRight = get_p(x + 1, y + 1);
+	if (belowRight.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(fire, belowRight);
+		return;
+	}
+}
+
+void Renderer::updateSmoke(float dt, int x, int y)
+{
+	Particle& smoke = get_p(x, y);
+	if (smoke.HasBeenUpdated())
+		return;
+	smoke.setHasBeenUpdated(true);
+
+	if (smoke.burn(dt))
+	{
+		smoke.setId(MAT_ID_EMPTY);
+		smoke.setLifetime(10.f);
+	}
+
+	Particle& above = get_p(x, y - 1);
+	if (above.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(smoke, above);
+		return;	
+	}
+	Particle& aboveLeft = get_p(x - 1, y - 1);
+	if (aboveLeft.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(smoke, aboveLeft);
+		return;
+	}
+	Particle& aboveRight = get_p(x + 1, y - 1);
+	if (aboveRight.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(smoke, aboveRight);
+		return;
+	}
+	Particle& left = get_p(x - 1, y);
+	if (left.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(smoke, left);
+		return;
+	}	
+	Particle& right = get_p(x + 1, y);
+	if (right.getId() == MAT_ID_EMPTY)
+	{
+		std::swap(smoke, right);
+		return;
+	}
+}
+
+
+void Renderer::update(float dt)
 {
 	for (int y = 0; y < GRID_HEIGHT; ++y)
 	{
@@ -219,6 +413,24 @@ void Renderer::update()
 					case MAT_ID_WATER:
 						updateWater(x, y);
 						break;
+					case MAT_ID_WOOD:
+						updateWood(dt, x, y);
+						break;
+					case MAT_ID_STONE:
+						updateStone(x, y);
+						break;
+					case MAT_ID_OIL:
+						updateOil(x, y);
+						break;
+					case MAT_ID_FIRE:
+						updateFire(dt, x, y);
+						break;
+					case MAT_ID_WOODFIRE:
+						updateWood(dt, x, y);
+						break;
+					case MAT_ID_SMOKE:
+						updateSmoke(dt, x, y);
+						break;
 				}
 			}
 		}
@@ -236,6 +448,24 @@ void Renderer::update()
 						break;
 					case MAT_ID_WATER:
 						updateWater(x, y);
+						break;
+					case MAT_ID_WOOD:
+						updateWood(dt, x, y);
+						break;
+					case MAT_ID_STONE:
+						updateStone(x, y);
+						break;
+					case MAT_ID_OIL:
+						updateOil(x, y);
+						break;
+					case MAT_ID_FIRE:
+						updateFire(dt, x, y);
+						break;
+					case MAT_ID_WOODFIRE:
+						updateWood(dt, x, y);
+						break;
+					case MAT_ID_SMOKE:
+						updateSmoke(dt, x, y);
 						break;
 				}
 			}
@@ -266,10 +496,66 @@ void Renderer::render(sf::RenderTarget &target)
 				{
 					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
 					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
-					rectangle.setFillColor(sf::Color::Cyan);
+					rectangle.setFillColor(sf::Color(0, 105, 148)); // Ocean blue
 					target.draw(rectangle);
 					break;
 				}
+				case MAT_ID_WOOD:
+				{
+					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
+					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
+					rectangle.setFillColor(sf::Color(70, 50, 30)); // Dark Brown color
+					target.draw(rectangle);
+					break;
+				}
+				case MAT_ID_STONE:
+				{
+					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
+					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
+					rectangle.setFillColor(sf::Color(128, 128, 128)); // Gray color
+					target.draw(rectangle);
+					break;
+				}
+				case MAT_ID_OIL:
+				{
+					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
+					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
+					rectangle.setFillColor(sf::Color(0, 0, 0)); // Black color
+					target.draw(rectangle);
+					break;
+				}
+				case MAT_ID_FIRE:
+				{
+					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
+					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
+					if (rand() % 2 == 0)
+						rectangle.setFillColor(sf::Color::Yellow); // Yellow color
+					else
+						rectangle.setFillColor(sf::Color::Red); // Red color
+					target.draw(rectangle);
+					break;
+				}
+				case MAT_ID_WOODFIRE:
+				{
+					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
+					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
+					if (rand() % 2 == 0)
+						rectangle.setFillColor(sf::Color::Yellow); // Yellow color
+					else
+						rectangle.setFillColor(sf::Color::Red); // Red color
+					target.draw(rectangle);
+					break;
+				}
+				case MAT_ID_SMOKE:
+				{
+					sf::RectangleShape rectangle(sf::Vector2f(1.f, 1.f));
+					rectangle.setPosition({static_cast<float>(x), static_cast<float>(y)});
+					rectangle.setFillColor(sf::Color(0, 0, 0)); // Black color
+					target.draw(rectangle);
+					break;
+				}
+				default:
+					break;
 			}
 		}
 	}
