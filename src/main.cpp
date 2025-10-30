@@ -56,8 +56,8 @@ int main()
 
         Particle& p = renderer.get_p(window.getSize().x / 2, window.getSize().y / 2);
         p = Particle(MAT_ID_SAND, 0.f, sf::Vector2f(0.f, 5.f), sf::Color::Blue);
-        Particle& p2 = renderer.get_p((window.getSize().x / 2) + 250, (window.getSize().y / 2) + 250);
-        p2 = Particle(MAT_ID_WATER, 0.f, sf::Vector2f(0.f, 5.f), sf::Color::Blue);
+        // Particle& p2 = renderer.get_p((window.getSize().x / 2) + 250, (window.getSize().y / 2) + 250);
+        // p2 = Particle(MAT_ID_WATER, 0.f, sf::Vector2f(0.f, 5.f), sf::Color::Blue);
         renderer.update();
         renderer.render(window);
 

@@ -18,16 +18,40 @@ void Renderer::updateSand(int x, int y)
 	if (sand.HasBeenUpdated())
 		return;
 	sand.setHasBeenUpdated(true);
+
 	if (y + 1 < WindowHeight)
 	{
+		// Try to fall as far as velocity allows (default to 5 if velocity is 0)
+		int maxFallDistance = static_cast<int>(sand.getVelocity().y);
+		if (maxFallDistance <= 0)
+			maxFallDistance = 1;
+
+		int fallDistance = 0;
+		for (int i = 1; i <= maxFallDistance && y + i < WindowHeight; ++i)
+		{
+			Particle& below = get_p(x, y + i);
+			// Only fall through empty spaces, STOP at water or sand
+			if (below.getId() == MAT_ID_EMPTY)
+				fallDistance = i;
+			else
+				break;  // Hit an obstacle
+		}
+
+		// If we can fall straight down, do it
+		if (fallDistance > 0)
+		{
+			std::swap(sand, get_p(x, y + fallDistance));
+			return;
+		}
+
 		Particle& below = get_p(x, y + 1);
-		if (below.getId() == MAT_ID_EMPTY
-			|| below.getId() == MAT_ID_WATER)
+		if (below.getId() == MAT_ID_WATER)
 		{
 			std::swap(sand, below);
 			return;
 		}
 
+		// Can't fall straight, try diagonal
 		Particle& belowLeft = get_p(x - 1, y + 1);
 		if (belowLeft.getId() == MAT_ID_EMPTY
 			|| belowLeft.getId() == MAT_ID_WATER)
@@ -56,13 +80,35 @@ void Renderer::updateWater(int x, int y)
 	water.setHasBeenUpdated(true);
 
 	if (y + 1 < WindowHeight)
-	{
-		Particle& below = get_p(x, y + 1);
-		if (below.getId() == MAT_ID_EMPTY)
+	{	
+		// Try to fall as far as velocity allows (default to 5 if velocity is 0)
+		int maxFallDistance = static_cast<int>(water.getVelocity().y);
+		if (maxFallDistance <= 0)
+			maxFallDistance = 1;
+
+		int fallDistance = 0;
+		for (int i = 1; i <= maxFallDistance && y + i < WindowHeight; ++i)
 		{
-			std::swap(water, below);
+			Particle& below = get_p(x, y + i);
+			// Only fall through empty spaces, STOP at water or sand
+			if (below.getId() == MAT_ID_EMPTY)
+				fallDistance = i;
+			else
+				break;  // Hit an obstacle
+		}
+
+		// If we can fall straight down, do it
+		if (fallDistance > 0)
+		{
+			std::swap(water, get_p(x, y + fallDistance));
 			return;
 		}
+		// Particle& below = get_p(x, y + 1);
+		// if (below.getId() == MAT_ID_EMPTY)
+		// {
+		// 	std::swap(water, below);
+		// 	return;
+		// }
 		// Try diagonal moves with random direction
 		if (rand() % 2 == 0)
 		{
@@ -114,9 +160,9 @@ void Renderer::updateWater(int x, int y)
 	{
 		if (rand() % 2 == 0)
 		{
-			for (int i = 0; i < dispersityRate; i++)
+			for (int i = 0; i < dispersityRate; ++i)
 			{
-				Particle& left = get_p(x - i - 1, y);
+				Particle& left = get_p(x - i, y);
 				if (left.getId() == MAT_ID_EMPTY)
 				{
 					std::swap(water, left);
@@ -128,9 +174,9 @@ void Renderer::updateWater(int x, int y)
 		}
 		else
 		{
-			for (int i = 0; i < dispersityRate; i++)
+			for (int i = 0; i < dispersityRate; ++i)
 			{
-				Particle& right = get_p(x + i + 1, y);
+				Particle& right = get_p(x + i, y);
 				if (right.getId() == MAT_ID_EMPTY)
 				{
 					std::swap(water, right);
