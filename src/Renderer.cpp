@@ -17,6 +17,7 @@ void Renderer::updateSand(int x, int y)
 	Particle& sand = get_p(x, y);
 	if (sand.HasBeenUpdated())
 		return;
+	sand.setHasBeenUpdated(true);
 	if (y + 1 < WindowHeight)
 	{
 		Particle& below = get_p(x, y + 1);
@@ -24,7 +25,6 @@ void Renderer::updateSand(int x, int y)
 			|| below.getId() == MAT_ID_WATER)
 		{
 			std::swap(sand, below);
-			sand.setHasBeenUpdated(true);
 			return;
 		}
 
@@ -33,7 +33,6 @@ void Renderer::updateSand(int x, int y)
 			|| belowLeft.getId() == MAT_ID_WATER)
 		{
 			std::swap(sand, belowLeft);
-			sand.setHasBeenUpdated(true);
 			return;
 		}
 
@@ -42,7 +41,6 @@ void Renderer::updateSand(int x, int y)
 			|| belowRight.getId() == MAT_ID_WATER)
 		{
 			std::swap(sand, belowRight);
-			sand.setHasBeenUpdated(true);
 			return;
 		}
 	}
@@ -111,30 +109,35 @@ void Renderer::updateWater(int x, int y)
 			}
 		}
 	}
-	if (x - 20 > 0 && x + 21 < WindowWidth)
+	int dispersityRate = water.getDispersityRate();
+	if (x - dispersityRate > 0 && x + dispersityRate + 1 < WindowWidth)
 	{
 		if (rand() % 2 == 0)
 		{
-			for (int i = 0; i < 20; i++)
+			for (int i = 0; i < dispersityRate; i++)
 			{
-				Particle& left = get_p(x - i, y);
+				Particle& left = get_p(x - i - 1, y);
 				if (left.getId() == MAT_ID_EMPTY)
 				{
 					std::swap(water, left);
 					return;
 				}
+				if (left.getId() == MAT_ID_SAND)
+					return;
 			}
 		}
 		else
 		{
-			for (int i = 0; i < 20; i++)
+			for (int i = 0; i < dispersityRate; i++)
 			{
-				Particle& right = get_p(x + i, y);
+				Particle& right = get_p(x + i + 1, y);
 				if (right.getId() == MAT_ID_EMPTY)
 				{
 					std::swap(water, right);
 					return;
 				}
+				if (right.getId() == MAT_ID_SAND)
+					return;
 			}
 		}
 	}

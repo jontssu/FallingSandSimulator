@@ -4,6 +4,7 @@ Particle::Particle(int id, float lifetime, sf::Vector2f velocity, sf::Color colo
 	: id(id), lifetime(lifetime), color(color), has_been_updated(false)
 {
 	velocity = {5.f, 5.f};
+	dispersityRate = 10;
 }
 
 void Particle::update()

@@ -17,6 +17,7 @@ class Particle
 		inline const bool HasBeenUpdated() const { return has_been_updated; }
 		inline const sf::Vector2f& getVelocity() const { return velocity; }
 		inline const int getIsSideMoving() const { return isSideMoving; }
+		inline const int getDispersityRate() const { return dispersityRate; }
 
 		void update();
 
@@ -27,5 +28,6 @@ class Particle
 		sf::Color		color = sf::Color::White;
 		bool			has_been_updated = false;
 		int				isSideMoving = 0;
+		int			    dispersityRate;
 
 };
